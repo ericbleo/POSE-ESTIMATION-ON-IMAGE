@@ -72,4 +72,11 @@ def classify_pose(key_points):
         return "Standing"
 
     return "Unknown Pose"
-   
+
+def label_shape(text):
+    font = cv2.FONT_HERSHEY_COMPLEX
+    scale, padding = 0.5, 5
+    (text_width, text_height), _ = cv2.getTextSize(text, font, scale, 1)
+    width = text_width + (padding*2)
+    height = text_height + (padding*2)
+    return width, height, text_width, text_height, font, scale, padding
