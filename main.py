@@ -80,3 +80,14 @@ def label_shape(text):
     width = text_width + (padding*2)
     height = text_height + (padding*2)
     return width, height, text_width, text_height, font, scale, padding
+
+def draw_centered_label(img, text, x_center, y, color):
+    width, height, text_width, text_height, font, scale, padding = label_shape(text)
+    x = int(x_center - width // 2)
+    # Rectangle background
+    cv2.rectangle(img, (x, y), (x + width, y + height), color, -1)
+    # Text centered inside the rectangle
+    text_x = int(x + (width - text_width) // 2)
+    text_y = int(y + height - padding - 2)
+    cv2.putText(img, text, (text_x, text_y), font, scale, (0, 0, 0), 1, cv2.LINE_AA)
+    return height  # Height 4 stacking the labels
