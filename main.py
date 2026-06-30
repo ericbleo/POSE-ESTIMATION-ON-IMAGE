@@ -9,6 +9,7 @@ def resize(frame, size):
     dimensions = (width, height)
     return cv2.resize(frame, dimensions, interpolation=cv2.INTER_AREA)
 
+# REFER TO THE IMAGE "pose_estimation_key_points.png" IN THE PROJECT FOLDER
 POSE_ESTIMATION_KEY_POINTS = {
     0: "nose",
     1: "left_eye",
