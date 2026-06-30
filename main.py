@@ -1,3 +1,5 @@
+# TIKTOK: @ericbleo
+
 import cv2
 from ultralytics import YOLO
 
@@ -74,7 +76,7 @@ def classify_pose(key_points):
     return "Unknown Pose"
 
 def label_shape(text):
-    font = cv2.FONT_HERSHEY_COMPLEX
+    font = cv2.FONT_HERSHEY_DUPLEX
     scale, padding = 0.5, 5
     (text_width, text_height), _ = cv2.getTextSize(text, font, scale, 1)
     width = text_width + (padding*2)
@@ -91,3 +93,43 @@ def draw_centered_label(img, text, x_center, y, color):
     text_y = int(y + height - padding - 2)
     cv2.putText(img, text, (text_x, text_y), font, scale, (0, 0, 0), 1, cv2.LINE_AA)
     return height  # Height 4 stacking the labels
+
+image_path = "images/picture.jpg"
+model_path = "models/yolo26l-pose.pt"
+
+pic = cv2.imread(image_path)
+if pic is None:
+    raise ValueError("Image not found! Check your path.")
+
+pic = resize(pic, 1)
+model = YOLO(model_path)
+result = model(pic)[0]
+
+# Not drawing model labels, only keypoints and boxes
+annotated = result.plot(labels=False, conf=False, boxes=True)
+
+for i, key_pts in enumerate(result.keypoints.xy):
+    key_pts = key_pts.cpu().numpy()
+    x1, y1, x2, y2 = map(int, result.boxes.xyxy[i])
+    x_center = int((x1 + x2) / 2)
+
+    cls = int(result.boxes.cls[i])
+    conf = float(result.boxes.conf[i])
+    detection_label = f"{result.names[cls]} {int(conf*100)}%"
+    pose_label = classify_pose(key_pts)
+    print(f"Person {i}: {detection_label} | {pose_label}")
+
+    # Compute BOTH label heights for stacking
+    _, detection_height, _, _, _, _, _ = label_shape(detection_label)
+    _, pose_height, _, _, _, _, _ = label_shape(pose_label)
+
+    y_label_top = max(0, y1 - pose_height - detection_height - 2)
+    used_pose_height = draw_centered_label(annotated, pose_label, x_center, y_label_top, (0, 200, 255))
+    used_detection_height = draw_centered_label(annotated, detection_label, x_center, y_label_top + used_pose_height, (255, 128, 0))
+
+cv2.imwrite("output/output_picture.jpg", annotated)
+print("Saved to output/output_picture.jpg")
+
+cv2.imshow("POSE ESTIMATION. TIKTOK: @ericbleo", annotated)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
